@@ -70,6 +70,35 @@ let fact_fix = make_fact fix
 let () = assert (fact_fix 10 = 3628800)
 ```
 
+ここでなぜ eta expansion が必要か理解しておかないと、この先の理解が不可能になる:
+
+```
+let fact0 = fun self -> function 0 -> 1 | n -> n * self (n-1)
+
+let rec fix f x = f (fix f) x
+
+let fact_fix = fix fact0
+
+(*
+fact_fix 10 => fact0 (fix fact0) 10       -- fix fact0 の展開にはもう一つ引数が必要
+            => 10 * (fix fact0) 9
+            => 10 * (fact0 (fix fact0) 9)
+            => ...
+            => 10 * 9 * ... * 1 * 1
+*)
+
+let rec fix' f = f (fix' f)
+
+let fact_fix' = fix' fact0
+
+(*
+fact_fix' 10 => fact0 (fix' fact0) 10     -- fix' fact0 の展開が可能なのでしてしまう
+             => fact0 (fact0 (fix' fact0)) 10
+             => fact0 (fact0 (fact0 (fix' fact0))) 10
+             => 帰ってこない
+*)
+```
+
 ### Z combinator
 
 同様に、OCaml では Y はそのままでは実行すると `x x` の所を評価しつづけて
