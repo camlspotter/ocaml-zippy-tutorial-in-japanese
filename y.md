@@ -114,10 +114,10 @@ fact_fix' 10 => fact0 (fix' fact0) 10     -- fix' fact0 の展開が可能なの
 let z_type_error = fun f -> (fun x -> f (fun v -> x x v)) (fun x -> f (fun v -> x x v))
 ```
 
-これは Y ではなく、Z と呼ばれる。
+これは Y ではなく、Z と呼ばれる。Strict なλ計算での代表的な不動点演算子である。
 
 だが、 Haskell と同様、OCaml も**通常は**再帰型を使うことはできないので、
-さらに再帰データ型を使った手動の roll/unroll のような鼻薬が必要になる
+型をつけるためには、再帰データ型を使った手動の roll/unroll のような鼻薬が必要になる
 
 ```ocaml
 type 'a roll = { unroll : 'a roll -> 'a }
