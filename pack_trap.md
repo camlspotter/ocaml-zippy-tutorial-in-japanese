@@ -148,3 +148,13 @@ Error: Forward reference to Result in file option.cmo
 But in the original example, `Option` has only type dependency over `Result`,
 which seems to be insufficient to prevent the wrong packing.
 
+OMake specific issue
+-------------------------------------
+
+Normally OMake is aware of module dependencies and reorder modules properly
+at `OCamlPackage` and `OCamlLibrary` functions, but again, it is only when
+there are value dependencies between modules.
+The above example is not packed correctly in OMake if the module list is reversed.
+
+I don't know whether other build tools automatically reorder the modules of this example...
+
