@@ -40,14 +40,19 @@ Pack the object files into `p.cmo`, but in a **wrong order**:
 $ ocamlc -pack -o p.cmo option.cmo result.cmo
 ```
 
+This is **not rejected**.
+
 Strange type error with the package
 -------------------------------------
 
-Now the modules are packed as `P`, therefore we can remove the original compiled files:
+Now the modules are packed as `P` (in a bad way),
+therefore we can remove the original compiled files:
 
 ```sh
 $ rm -f result.cm* option.cm*
 ```
+
+This is normal. Packages are usually installed without `.cmi` files of packed modules.
 
 Let's write an application:
 
@@ -102,9 +107,7 @@ end
 The packed module is actually not self-contained:
 the type `Result.t` in module `Option` is **not** the one defined in module `Result` in `p.ml`,
 but is defined in `result.ml` outside of `P`.
-
-Packages are normally installed without `.cmi` files of packed modules, as we have removed `result.cmi` and `option.cmi`.
-Therefore, when using the package `P`, OCaml thinks that `Result.t` of the result type of `P.Option.t_result` is abstract.
+Lacking `result.cmi`, OCaml thinks that `Result.t` of the result type of `P.Option.t_result` is abstract.
 
 How to fix this?
 -------------------------------------
