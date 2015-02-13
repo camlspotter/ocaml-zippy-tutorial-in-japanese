@@ -1,7 +1,7 @@
 ocamlc -pack order glitch
 ===============================
 
-Summary: be careful about the ordering of modules in `ocamlc -pack`, or you may lose type alias in a very strange way.
+Summary: be careful about the ordering of modules in `ocamlc -pack`, or you may suffer from very strange type errors.
 
 Related: type error, polymorphic variant, ocaml, pack
 
@@ -52,9 +52,9 @@ therefore we can remove the original compiled files:
 $ rm -f result.cm* option.cm*
 ```
 
-This is normal. Packages are usually installed without `.cmi` files of packed modules.
+This is normal, for packages are usually installed without `.cmi` files of packed modules.
 
-Let's write an application:
+Let's write an application using `P`:
 
 ```ocaml
 (* test.ml *)
@@ -78,6 +78,20 @@ This is strange. The function `f` must be typed as
 
 ```ocaml
 val f : 'a option -> [`Error of [> `X | `None] | `Ok of int]
+```
+
+When I saw this error, first I thought it was a limitation of the polymorphic variants, but the following standalone code type-checks. Something is wrong above:
+
+```ocaml
+type ('a, 'error) result = [`Ok of 'a | `Error of 'error]
+
+let option_to_result = function
+  | Some v -> `Ok v
+  | None -> `Error `None
+  
+let f v = match v with
+  | Some 1 -> `Error `X
+  | _ -> option_to_result v
 ```
 
 Why this happend?
@@ -151,6 +165,34 @@ Error: Forward reference to Result in file option.cmo
 But in the original example, `Option` has only type dependency over `Result`,
 which seems to be insufficient to prevent the wrong packing.
 
+Why OCaml does not check type-dependency?
+--------------------------------------------
+
+In OCaml we can wriet modules with the following dependencies:
+
+* `a.mli` used by `a.ml` and `b.ml`
+* `b.ml` used by `a.ml`
+
+For example,
+
+```ocaml
+(* a.mli *)
+type t = Foo
+val g : unit -> t
+```
+
+```ocaml
+(* b.ml *)
+let f () = A.Foo
+```
+
+```ocaml
+(* a.ml *)
+let g = B.f
+```
+
+Here, the type-dependency (`B` depends on `A`) and value-dependency (`A` depends on `B`) are opposite, but they have no problem (unless you link them in the right order). This kind of programs can be writte in OCaml for long time and therefore historically it does not force type-dependency check at link time I guess.
+
 OMake specific issue
 -------------------------------------
 
@@ -160,4 +202,3 @@ there are value dependencies between modules.
 The above example is not packed correctly in OMake if the module list is reversed.
 
 I don't know whether other build tools automatically reorder the modules of this example...
-
