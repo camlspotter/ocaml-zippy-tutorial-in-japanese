@@ -168,7 +168,7 @@ which seems to be insufficient to prevent the wrong packing.
 Why OCaml does not check type-dependency?
 --------------------------------------------
 
-In OCaml we can wriet modules with the following dependencies:
+In OCaml we can write modules with the following dependencies:
 
 * `a.mli` used by `a.ml` and `b.ml`
 * `b.ml` used by `a.ml`
@@ -202,3 +202,8 @@ there are value dependencies between modules.
 The above example is not packed correctly in OMake if the module list is reversed.
 
 I don't know whether other build tools automatically reorder the modules of this example...
+
+What about linking, not packing?
+-------------------------------------
+
+Linking does not produce a new module, and to use a linked module, the linked modules' `.cmi` files are required. Therefore I guess we do not have the problem at packing there.
