@@ -91,6 +91,7 @@ fact_fix 10 => fact0 (fix fact0) 10       -- fix fact0 の展開にはもう一�
             => 10 * 9 * ... * 1 * 1
 *)
 
+(* eta expansion が無い場合 *)
 let rec fix' f = f (fix' f)
 
 let fact_fix' = fix' fact0
