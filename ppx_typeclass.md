@@ -81,6 +81,6 @@ end
 ```ocaml
 module List(A : Show.Class) = struct
   type a = A.a list
-  let show xs = String.concat "" (List.map A.show xs)
+  let show xs = String.concat "" (List.map (Show.show ?d:(module A)) xs)
 end
 ```
