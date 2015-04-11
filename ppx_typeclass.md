@@ -80,7 +80,9 @@ end
 
 ```ocaml
 module List(A : Show.Class) = struct
+  let a = (module A : Show.Class with type a = 'a)
   type a = A.a list
-  let show xs = String.concat "" (List.map (Show.show ?d:(module A)) xs)
+  let show xs =
+    String.concat "" (List.map (Show.show ~d:a) xs)
 end
 ```
