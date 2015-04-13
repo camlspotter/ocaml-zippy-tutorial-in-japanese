@@ -1,5 +1,10 @@
 # ppx_typeclass
 
+## basic idea
+
+* typable by the vanilla type checker (but requires transformation to execute properly)
+* vanilla typing + transformation in ppx, then retype it by the vanilla again
+
 ## type class declaration and entry points
 
 ```ocaml
@@ -14,6 +19,17 @@ module Num = struct
   external (-) : ?d:(module Class with type a = 'a) -> 'a -> 'a -> 'a = "%OVERLOADED"
 end
 ```
+
+Entry points for overloaded values are by `external = "%OVERLOADED`. Their use should be replaced by an instance value:
+
+```ocaml
+Num.(+) 1.2 3.4   =>   Float.(+) 1.2. 3.4        (* See the definition Float below *)
+```
+
+`Num.(+)` in the above is instantiated to `?d:(module Class with type a = float) -> float -> float -> float`.
+Ppx finds `Float` instance module (somehow, see later sectioons) which maches with the type `module Class with type a = float`.
+It also sees the value is `%OVERLOADED` external, in this case, the use of the overloaded value is replaced
+by an identifier defined in the found instance module: `Float.(+) 1.2 3.4`.
 
 ## type class instance
 
@@ -31,13 +47,7 @@ module Float = struct
 end
 ```
 
-## Use of overloaded values
-
-```ocaml
-Num.(+) 1.2 3.4    (*  =>  Num.(+) ~d:(module Float) 1.2 3.4 *)
-```
-
-The compiler got a code `Num.(+) ?d:(None : (module Class with type a = float) option) 1.2 3.4`. The task is to find a type class instance module whose type is `(module Class with type a = float)` or bigger.
+Instance modules for `Num` are modules of instance module types of `Num.Class`. For openess of the overloading, those module can be defined anywhere.
 
 ## Derived overloading
 
@@ -47,7 +57,7 @@ Simple app cannot derive overloading:
 let double x = Num.(+) x x    (* fails. ambiguous *)
 ```
 
-The compiler got a code `Num.(+) ?d:(None : (module Class with type a = 'a) option) x x`, and failed to find an instance bigger than it.
+The compiler got a code `Num.(+) ?d:(None : (module Class with type a = 'a) option) x x`, and failed to find an instance module whose module type maches with `module Class with type a = 'a`.
 
 It requires an explicit dispatching:
 
@@ -56,7 +66,15 @@ It requires an explicit dispatching:
 let double ?d x = Num.(+) ?d x x
 ```
 
-The compiler got a code `Num.(+) ?d:(Some d : (module Class with type a = 'a) option) x x`. Since the dispatch argument is not omitted, the compiler needs not to work on it.
+Thus, the searching of instance module for `Num.(+)` is derived to one for `double`.
+ppx can see this by looking at the `?d` argument of `Num.(+)`. 
+
+The transformation of derived overloaded values are different from the overloaded entry points:
+
+```ocaml
+double ?d:(None : (module Num.Class with type a = float) option) 1.2  
+=>  double ?d:(Some (module Float : Num.Class with type a = float)) 1.2
+```
 
 ## Type class with constraints
 
