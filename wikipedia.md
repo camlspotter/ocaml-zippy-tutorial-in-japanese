@@ -2,7 +2,7 @@
 
 http://ja.wikipedia.org/wiki/%E9%96%A2%E6%95%B0%E5%9E%8B%E8%A8%80%E8%AA%9E
 
-  ## 作用型言語（applicational language）ともいう
+## 作用型言語（applicational language）ともいう
 
 こんな事は聞いたことがない。
 Google で "functional language" "applicational language" -関数型 で検索すると一件も見つからない。
@@ -15,4 +15,12 @@ http://www.cs.is.noda.tus.ac.jp/~mune/masaki/oop-bak/k1.html-bak
 
 が残る。ここが情報元であるかはもちろんわからないが、このページは参照元としてはあまりに薄弱である。
 
-  結論として「作用型言語（applicational language）ともいう
+結論として「引数に関数を作用（applicate）させて計算をおこなうことから、作用型言語（applicational language）ともいう。」は削除すべきである。
+
+## 関数型プログラミング の項
+
+はっきりいって意味不明でどこを修正すべきというより、全部書き直したほうが良い。
+
+* 純粋関数型によりすぎた「関数」の良くわからない説明。
+* C や Pascal のような非関数型言語を例示してその補集合として関数型言語を説明するのはおかしい
+
