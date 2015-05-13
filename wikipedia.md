@@ -1,6 +1,10 @@
 # Wikipedia.jp: 関数型言語 に関する疑問
 
-http://ja.wikipedia.org/wiki/%E9%96%A2%E6%95%B0%E5%9E%8B%E8%A8%80%E8%AA%9E
+http://ja.wikipedia.org/w/index.php?title=%E9%96%A2%E6%95%B0%E5%9E%8B%E8%A8%80%E8%AA%9E&oldid=54525284
+
+はあまりに意味不明であり、何らかの対処が必要である。
+
+（Wikipedia.jp でのエントリの最新記事は http://ja.wikipedia.org/wiki/%E9%96%A2%E6%95%B0%E5%9E%8B%E8%A8%80%E8%AA%9E であり、上のものと内容が変わっている可能性がある。)
 
 ## 作用型言語（applicational language）ともいう
 
