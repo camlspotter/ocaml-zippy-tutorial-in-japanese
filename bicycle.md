@@ -33,3 +33,5 @@ http://www.keishicho.metro.tokyo.jp/toukei/keiho/pdf/bicycle2.pdf
 http://images.huffingtonpost.com/2013-03-13-P1150368copy-thumb.JPG
 
 それだけ少いって事ですね。
+
+東京都桧原村、利島村、神津島村、三宅村、御蔵島村、青ヶ島村では平成22から26年までの窃チャリ数ゼロなので、高価な自転車を持っている方にはお勧めです。
