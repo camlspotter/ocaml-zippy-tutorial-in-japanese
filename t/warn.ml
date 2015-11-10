@@ -81,8 +81,3 @@ class type ct15 = object method x : int end
 class c15 : ct15 = object (self)
   method private x = self#x + 1
 end
-
-
-
-  
-    
