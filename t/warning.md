@@ -69,7 +69,7 @@ type t =
 (*) this is a comment *)     (* <= Warning 1: this is the start of a comment. *)
 ```
 
-In OCaml, if unary and binary operators can be used as normal functions
+In OCaml, unary and binary operators can be used as normal functions
 by surrounding them with parenthesis `(` and `)`:
 
 ```
@@ -228,7 +228,8 @@ let () =
 ```
 
 If the partial application is intentional: you want a side effect caused only by the partial application,
-you can bind the result of the partial application with `_` pattern:
+you can bind the result of the partial application with `_` pattern.
+In this case, I strongly recommend to add a comment that the partial application is intended:
 
 ```
 
@@ -238,12 +239,10 @@ let iter2 f =
 
 let () =
   print_string "hello";
-  (* The following partial application is intensional. *)
+  (* The following partial application is intentional. *)
   let _ = iter2 print_string in (* <= no more Warning 5 *)
   print_string "world"
 ```
-
-In this case, you should add a comment that the partial application is intended.
 
 ## Warning 6: labels were omitted in the application of this function.
 
@@ -254,6 +253,18 @@ let () =
 
 (* Warning 6: labels were omitted in the application of this function. *)
 ```
+
+Labeled arguments are omittable when the function is fully applied.
+If labels are omitted, the arguments are ordered in the same order of the function signature:
+the application of `iter2` above is equivalent with `iter2 ~f:print_endline ["hello"; "world"]`,
+not with `iter2 print_endline ~f:["hello"; "world"]`, since `iter2`'s type is
+`f:('a -> unit) -> 'a list -> unit`.
+
+Warning 6, when enabled, reports these omitted labels at full applications.
+
+#### How to fix
+
+Do not omit labels.
 
 ## Warning 7: the method m is overridden.
 
@@ -270,12 +281,26 @@ end
 (* Warning 7: the method m is overridden. *)
 ```
 
+#### How to fix
+
+Explicitly state the fact that the method is overridden using `method!`:
+
+```
+class c = object
+  method m = print_endline "hello"
+end
+
+class c' = object
+  inherit c
+  method! m = print_endline "bye"   (* With method!, no more Warning 7 *) 
+end
+```
 
 ## Warning 8: this pattern-matching is not exhaustive.
 
 ```
-let g = function                    (* <= Warning 8 *)
-  | true -> print_endline "hello"
+let from_Some = function                    (* <= Warning 8 *)
+  | Some v -> v
 
 (* Warning 8: this pattern-matching is not exhaustive.
    Here is an example of a value that is not matched:
@@ -283,6 +308,15 @@ let g = function                    (* <= Warning 8 *)
 *)
 ```
   
+#### How to fix
+
+Make the pattern mattching exhaustive:
+
+```
+let from_Some = function                    (* <= no more Warning 8 *)
+  | Some v -> v
+  | None -> assert false
+```
 
 ## Warning 9: the following labels are not bound in this record pattern
 
@@ -455,7 +489,7 @@ let v =
   3
 ```
 
-## Warning 2y: unused variable x.
+## Warning 27: unused variable x.
 
 ```
 let v =
