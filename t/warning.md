@@ -119,7 +119,7 @@ white spaces in the both sides:
 
 ```
 let six = ( * ) 2 3
-
+```
 
 ## Warning 3: deprecated
 
