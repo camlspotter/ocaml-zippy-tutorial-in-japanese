@@ -1,0 +1,1 @@
+[@@@ocaml.ppwarning "Hoo Hoo"]

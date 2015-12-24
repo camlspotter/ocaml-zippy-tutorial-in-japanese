@@ -1,9 +1,7 @@
-(* ?? *)
+(* Warning 17: the virtual method x is not declared. *)
 
-class virtual ['a] c = object (self)
-  method virtual x : 'a
-  initializer
-    ignore self#x
+class virtual c = object (self)
+  method y = self#x + 1
 end
 
           
