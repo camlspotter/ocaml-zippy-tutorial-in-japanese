@@ -48,6 +48,27 @@ function
 lazy $ raise Failure
 ```
 
+## let should be just for local scope introduction
+
+We have `let x = ...`, `let module M = ...`. Ok,
+then why we have no `let type t = ...`?  It is a mistake to use `let`
+only for values.
+
+`let` should be a keyword to open a new scope. That's all:
+
+```
+let
+
+  x = 1
+
+  module M = ...
+
+  type t = ...
+
+in
+...
+```
+
 ## struct and sig sound scarely
 
 They sound just horrible and I had no courage to use them 20 years ago.
