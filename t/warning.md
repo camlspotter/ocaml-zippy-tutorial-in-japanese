@@ -1,8 +1,13 @@
-警告から見る正しい OCaml コーディング
-====================================
+# Complete guide to the OCaml warnings
 
-OCaml 4.02.1 には 49種類の警告があります。その定義は OCaml コンパイラのソース
-`utils/warnings.mli` で見ることができます:
+OCaml 4.03.0 has 50 kinds of warnings.
+This document explains all these warnings:
+why they are warned, how to fix them, with examples.
+
+## Where are they declared?
+
+Their definitions are in `utils/warnings.mli`
+(https://github.com/ocaml/ocaml/blob/4.02.3/utils/warnings.mli):
 
 ```ocaml
 type t =
@@ -55,70 +60,68 @@ type t =
   | Attribute_payload of string * string    (* 47 *)
   | Eliminated_optional_arguments of string list (* 48 *)
   | No_cmi_file of string                   (* 49 *)
+  | Bad_docstring of bool                   (* 50 *)
 ```
 
-この文書はこれらの警告を解説することを通して、
-どういった OCaml プログラムがまずいのか、どう書くべきか、を探っていきます。
-
-Warning 1, 2: 掛算記号とコメント
--------------------------------------------------------
-
-演算子を普通の関数のように前置して使う場合には括弧でその演算子を囲います。
-例えば、足し算を行う二項演算子 `+` を括弧で囲んで `(+)` と書くと、
+## Warning 1: this is the start of a comment.
 
 ```
-# 1 + 2;;
-- : int = 3
-# (+) 1 2;;
-- : int = 3
+(*) this is a comment *)
 ```
 
-ですが、`(*)` は掛算を意味しません。OCaml のコメントは `(*` と `*)` で囲まれた
-テキストです。ですから `(*)` はコメントの始まりを意味します。
-しかし、二項演算子 `*` を関数として使おうとして `(*)` と書く人が後を絶ちません。
-`*` を関数として使いたい場合は `(` と `*` の間にスペースを入れる必要があります。
+In OCaml, if unary and binary operators can be used as normal functions
+by surrounding them with parenthesis `(` and `)`:
 
 ```
-# 2 * 3;;
-- : int = 6
-# ( * ) 2 3;;
-- : int = 6
+let three = (+) 1 2
 ```
 
-### Warning 1: this is the start of a comment.
-
-```ocaml
-# (*) 2 3 this is a comment *)
-Characters 0-3:
-  (*) 2 3 this is a comment *)
-  ^^^
-Warning 1: this is the start of a comment.
-```
-
-OCaml は妙なコメントを発見しました。もしかして掛算したかったのでしょうか。
-
-### Warning 2: this is not the end of a comment.
+There is a small glitch for operators start with `*`, such as
+`*` and `*.`.  They cannot be simply wrapped by parentheses,
+since `(*` is parsed as a start of OCaml comment,
+and `*)` is as an end of it.
+You must insert white spaces before `*`:
 
 ```
-# 2 * 3;;
-- : int 6
-# ( *) 2 3
-Characters 2-4:
-  ( *) 2 3;;
-    ^^
-Warning 2: this is not the end of a comment.
-- : int = 6
+let six = ( * ) 2 3
 ```
 
-今度は括弧を閉じる方でも警告が出ました。OCaml は掛算だと思っていますが
-もしかしたらユーザーはコメントを閉じているつもりなのかもしれません。
+If you forget to inserting space,
+
+```
+let six = (*) 2 3    (* <= Warning 1: this is the start of a comment. *)
+```
+
+OCaml immediately warns that `(*)` is not a binary operator as a function
+but a beginning of a comment.  Normally this mistake turns the rest of
+the code into a non terminating comment and the whole program is rejected
+due to a parse error. However, you can construct a valid code which contains
+`(*)...`:
+
+```
+let this_is_not_a_list_of_function_but_an_int = [(*) 3 ; ( *) 4]
+```
+which is equivalent with 
+`let this_is_not_a_list_of_function_but_an_int = [4]`
+
+## Warning 2: this is not the end of a comment.
+
+```
+let six = ( *) 2 3   (* <= Warning 2: this is not the end of a comment. *)
+```
+
+This is a valid program but confusing since `*)` is to close a comment.
+
+#### How to fix:
+
+When you write a `*` as a function, write it as `( * )` surrounding
+white spaces in the both sides:
+
+```
+let six = ( * ) 2 3
 
 
-
-
-
-Warning 3: 推奨されない値
--------------------------------------------------------
+## Warning 3: deprecated
 
 ```
 # true & false;;
@@ -128,9 +131,14 @@ Use (&&) instead.
 - : bool = false
 ```
 
-これは後方互換性のために残してはあるが、使用を勧められない関数や値を使ったときに出る警告です。
-この `(&)` という関数は `pervasives.mli` ファイルに次のようにアトリビュート付きで
-宣言されています:
+OCaml libraries have values which are now deprecated and
+should not be used for new programs.  
+Warning 3 is to inform uses of deprecated values and advice
+better alternatives.
+
+Deprecated values are declared with `ocaml.deprecated` attributes
+at their signatures.
+For example, `Pervasives.(&)` is declared as follows:
 
 ```
 external ( & ) : bool -> bool -> bool = "%sequand"
@@ -138,40 +146,62 @@ external ( & ) : bool -> bool -> bool = "%sequand"
 (** @deprecated {!Pervasives.( && )} should be used instead. *)
 ```
 
-この `[@@ocaml.deprecated ...]` というアトリビュートがある値を使うとこの警告が
-出るわけですね。この場合は `(&)` ではなく `(&&)` を使うべきとのメッセージが表示されます。
+The attribute `[@@ocaml.deprecated <message>]` marks the value deprecated
+and warns its uses.
 
-### どうすべきか
+#### How to fix
 
-着本的に deprecated な関数や値は使わないようにしましょう。通常は何を代りにつかうべきか
-警告に表示されているはずです。
-
-このアトリビュートはあなたも使うことができます。後方互換性のために残してはあるが、
-ほんとうは使って欲くはない値に付けるとよいでしょう。
+Just follow the warning message which should propose the fix.
 
 
-
-
-Warning 4: パターンマッチが将来の型の拡張に脆弱かもしれない
---------------------------------------------------------
+# Warning 4: this pattern-matching is fragile.
 
 ```ocaml
-(* トップレベルではコードを提示しにくいので、プログラムファイルにします *)
-
 type t = Foo | Bar
 
 let f = function
-  | Foo -> print_string "1"
-  | _ -> print_string "other than 1"    (* <= Warning 4 *)
+  | Foo -> print_string "Foo"
+  | _ -> print_string "Must be Bar"    (* <= Warning 4 *)
 
 (* Warning 4: this pattern-matching is fragile.
    It will remain exhaustive when constructors are added to type t. *)
 ```
 
-デフォルトではオンになっていない警告が出て来ました。この警告を見るには、例えば、
-`ocamlc -w A x.ml` など全ての警告表示をオンにして下さい。
+Warning 4 is not turned on by default.  If you want to see this,
+you need `-w A` option:  `ocamlc -w A w4.ml`.
+This applies to all the other non default warnings.
 
+The wildcard `_` is useful in the pattern matching to handle the default cases.
+But it has a downside: if you add a new constructor to an existing type,
+functions with wildcards for the type are compiled without any modification.
+The handling of this new constructor is covered by the default cases
+and this can be against your intention, a bug:
 
+```ocaml
+type t = Foo | Bar | Zee   (* <= new constructor added *)
+
+let f = function
+  | Foo -> print_string "Foo"
+  | _ -> print_string "Must be Bar"  (* <= Zee is handled by this case unintentionally *)
+```
+
+Warning 4 reports such wildcard uses which may make your program fragile
+against future extension of constructors.
+
+#### How to fix
+
+If you explicitly list all the cases instead of using the wildcard,
+pattern matches will become non-exhausive when a new constructor is added.
+Non-exhaustive pattern match warning (Warning 8) will nicely guide you
+to where you have extend your code:
+
+```ocaml
+type t = Foo | Bar | Zee   (* <= new constructor added *)
+
+let f = function
+  | Foo -> print_string "Foo"
+  | Bar -> print_string "Must be Bar"  (* <= Warning 8 tells that you need a case for Zee *)
+```
 
 
 
