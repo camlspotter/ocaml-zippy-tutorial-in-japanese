@@ -304,18 +304,24 @@ let from_Some = function                    (* <= Warning 8 *)
 
 (* Warning 8: this pattern-matching is not exhaustive.
    Here is an example of a value that is not matched:
-   false
+   None
 *)
 ```
-  
+
+Pattern match cases do not all the possible values for the matched type.
+It is strongly recommended to fix non exhaustive pattern matches.
+If the pattern match takes a value not covered by it, it raises `Match_failure` exception.
+
 #### How to fix
 
-Make the pattern mattching exhaustive:
+Make the pattern mattching exhaustive.  If you are sure that the pattern match never takes
+some form of data, you should explicitly state that fact by adding cases call `assert false`
+rather than leaving the match non exhaustive.
 
 ```
 let from_Some = function                    (* <= no more Warning 8 *)
   | Some v -> v
-  | None -> assert false
+  | None -> assert false (* [from_Some] is only applied when the argument is known to be [Some x]. *)
 ```
 
 ## Warning 9: the following labels are not bound in this record pattern
