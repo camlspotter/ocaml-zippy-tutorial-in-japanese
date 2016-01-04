@@ -326,6 +326,8 @@ let from_Some = function                    (* <= no more Warning 8 *)
 
 ## Warning 9: the following labels are not bound in this record pattern
 
+If not all the record labels are listed in a pattern, this is warned:
+
 ```
 type r = { x : int; y : int  }
 
@@ -339,7 +341,36 @@ let h = function
 *)
 ```
 
+This is to prevent users from forgetting to consider pattern match
+all the fields. Especially when a record type is extended with additional
+fields, this warning may help to find the places where record patterns
+should be extended.
+
+#### How to fix
+
+List all the fields with wild cards:
+
+```
+let h = function
+  | {x = 0; y = _} -> 0             (* <= no more Warning 9 *)
+  | {x = x; y = y} -> x + y
+```
+
+Or use `_` to explicitly declare you are not interested in the other fields:
+
+```
+let h = function
+  | {x = 0; _} -> 0             (* <= no more Warning 9 *)
+  | {x = x; y = y} -> x + y
+```
+
+The latter is slightly fragile since Warning 9 will no longer be reported
+at the `{ ..; _ }` for future extension of the record type.
+
 ## Warning 10: this expression should have type unit.
+
+This warning is reported when the evaluation result of a non-unit expression
+is discarded:
 
 ```
 let f1 fd =
@@ -350,8 +381,29 @@ let f1 fd =
 (* Warning 10: this expression should have type unit. *)
 ```
 
+In the above example. `Unix.read`'s type is
+`Unix.file_descr -> bytes -> int -> int -> int`, and
+`Unix.read fd buf 0 10` returns the number of bytes
+obtained by `read` system call.
+
+Throwing away the result of computation is likely a bug
+therefore Warning 10 is to report it.
+
+#### How to fix
+
+Explicitly discard the computation result using `ignore`:
+
+```
+let f1 fd =
+  let buf = Bytes.create 10 in
+  ignore (Unix.read fd buf 0 10);       (* no more Warning 10 *)
+  buf
+```
 
 ## Warning 11: this match case is unused.
+
+Warning 11 reports a pattern match case which will not be used,
+because the former cases completely cover its matching possibility:
 
 ```
 let x11 x = match x with
@@ -363,30 +415,130 @@ let x11 x = match x with
 (* Warning 11: this match case is unused. *)
 ```
 
+Here, the last case is never used, since the pattern of the first case
+`Some true` and the one of the second `Some false` cover all the cases
+for `Some _` of `bool option`.
+
+#### How to fix
+
+The easiest way is to remove the redundant case:
+
+```
+let x11 x = match x with
+  | Some true -> 1
+  | Some false -> 0
+  | None -> 0
+(*| Some _ -> 2 *)     (* no more Warning 11 *) 
+```
+
+But be careful that it may not be the right solution.
+It may be possible that its former case patterns are
+more widely specified than programmer's intention, or
+it may be also possible that the cases are mis-aligned.
+
+For example, the following implementation of `from_Some` has
+a bug since the default case comes first than the `Some` case by mistake.
+
+```
+let from_Some x = match x with
+  | _ -> raise (Failure "this is not Some")
+  | Some x -> x            (* <= Warning 11 *)
+```
+
 ## Warning 12: this sub-pattern is unused.
 
 ```
 let f = function
-  | () | () -> 1
+  | () | () -> 1           (* <= Warning 12 *)
 ```
 
 Same as 11 but only for sub-patterns of or-patterns.
 
+#### How to fix
+
+Same as Warning 11. Check the pattern. Probably something is wrong
+in the sub-patterns or simply the warned sub-pattern is redundant.
+
 ## Warning 13: the instance variable x is overridden.
 
-The behaviour changed in ocaml 3.10 (previous behaviour was hiding.)
+If a class instance variable of a class is overrided in its sub-class,
+Warning 13 is reported:
 
 ```
 class c = object
   val x = 1
+  method x = x
 end
 
-class c2 = object
+class c' = object
   inherit c
+  val x = 2          (* <= Warning 13 *)
+  method y = x
+end
+
+(* Warning 13: the instance variable x is overridden.
+   The behaviour changed in ocaml 3.10 (previous behaviour was hiding.) *)
+```
+
+The resulting class `c'` is equivalent with the following class declaration:
+
+```
+(* OCaml 3.10 and later *)
+class c'' = object
   val x = 2
+  method x = x
+  method y = x
 end
 ```
 
+By overriding the instance variable `x` in the sub-class `c'`,
+the method `x` works now differently than `c`:
+
+```
+# (new c)#x;;
+- : int = 1
+# (new c')#x;;
+- : int = 2      (* <= overridden *)
+# (new c')#y;;
+- : int = 2
+```
+
+Warning 13 reports this silent change of method behaviour by
+instance variable override.
+
+Before OCaml 3.10, the behaviour of class instance variable overriding
+was different: it does not replace the old one but create a new variable
+and shadow the original. With the same definitions above, OCaml 3.09
+works differently. Warning 13 also reports possibility of backward
+incompatible program behaviour of this change:
+
+```
+# (new c)#x;;
+- : int = 1
+# (new c')#x;;
+- : int = 1      (* <= not overridden! *)
+# (new c')#y;;
+- : int = 2
+```
+
+#### How to fix
+
+Use `val!` instead `val` to explicitly declare that the user knows
+the instance variable is overridden:
+
+```
+class c = object
+  val x = 1
+  method x = x
+end
+
+class c' = object
+  inherit c
+  val! x = 2          (* no more Warning 13 *)
+  method y = x
+end
+```
+  
 ## Warning 14: illegal backslash escape in string.
 
 ```
