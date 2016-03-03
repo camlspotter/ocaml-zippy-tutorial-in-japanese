@@ -67,7 +67,7 @@ MyOCamlTop(name, files) =
   .DEFAULT: $(OCamlTop $(name), $(files))
   export
 ```
-`MyOCamlTop(name, files)` と唱えると `omake` すると自動的にカスタムトップレベルを生成する
+これは `MyOCamlTop(name, files)` と唱え `omake` すると自動的にカスタムトップレベルを生成する
 というルールを作る、が `export` を忘れると効果がなくなる。
 
 # ルール
