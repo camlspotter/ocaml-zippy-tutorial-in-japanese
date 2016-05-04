@@ -1,6 +1,3 @@
-移転
-==========
+# OCaml の適当な日本語(と英語)での情報
 
-https://github.com/camlspotter/ocaml-zippy-tutorial-in-japanese
-
-BitBucket の Markdown 表示は何時までたっても改善されないので GitHub にうつりました。
+全く関係ない生活情報もあるよ
