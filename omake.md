@@ -1,3 +1,5 @@
+# OMake に関するメモ
+
 # return する関数は内部で作った dependency を export できない
 
 ```
