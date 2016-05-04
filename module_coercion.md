@@ -1,13 +1,13 @@
-Module coercion �ˤĤ���
+Module coercion について
 =============================
 
-Module coercion �Ȥ����ΤϽ��Ƹ���Ȳ��Τ��Ȥ����狼��ʤ����路�⤽�����ä��Τǡ��狼�롣
-�ʤΤǴ�ñ�˥����ǥ������������Ƥ�����
+Module coercion というのは初めて見ると何のことだかわからない。わしもそうだったので、わかる。
+なので簡単にアイデアだけ説明しておく。
 
-OCaml �Ǥ� module �Υ���ѥ���
+OCaml での module のコンパイル
 ==============================
 
-OCaml �Ǥ� module �� tuple ��Ʊ���֥��å���¤���Ѵ�����:
+OCaml では module を tuple と同じブロック構造に変換する:
 
 
     $ ocaml -dlambda
@@ -18,7 +18,7 @@ OCaml �Ǥ� module �� tuple ��Ʊ���֥��å���¤���Ѵ�����:
     module M : sig val x : int val y : string end
 
 
-`(makeblock 0 x/1021 y/1022)` �Ȥ����Τ�������ʬ�� Tuple �Ǥ�Ʊ��:
+`(makeblock 0 x/1021 y/1022)` というのがその部分。 Tuple でも同じ:
 
 
     # (fun x y -> (x,y)) (42, "hello");;
@@ -31,26 +31,26 @@ OCaml �Ǥ� module �� tuple ��Ʊ���֥��å���¤���Ѵ�����:
     - : '_a -> (int * string) * '_a = <fun>
 
 
-`(x,y)` ����ʬ�� `(makeblock 0 x/1021 y/1022)` �ˤʤäƤ��롣
+`(x,y)` の部分が `(makeblock 0 x/1021 y/1022)` になっている。
 
-�ʤΤ� `sig val x : int val y : string end` �Υ⥸�塼��� `int * string` ��
-Ʊ���֥��å���¤�򤷤Ƥ��롣
+なので `sig val x : int val y : string end` のモジュールは `int * string` と
+同じブロック構造をしている。
 
-�ޤ�������ס�
+まずこれ重要。
 
-ML �Υ⥸�塼��η��դ��� tuple �������
+ML のモジュールの型付けは tuple よりも柔軟
 ======================================
 
-`(int * string)` �Ȥ������� tuple �����ä��Ȥ��ơ������ `(string * int)` �Ȥ���
-���˻Ȥ��뤫�Ȥ����Ȥ�����󤽤�ʤ��ȤϤǤ��ʤ���
+`(int * string)` という型の tuple があったとして、それを `(string * int)` という
+型に使えるかというともちろんそんなことはできない。
 
 
     # (Obj.magic (42, "hello") : (string * int));;
     Segmentation fault (core dumped)
 
 
-����ML �Υ⥸�塼��ϡ� `sig val x : int val y : string end` �Ȥ����������
-�⥸�塼��� `sig val y : string val x : int end` �Ȥ������ˤ��Ƥ��ɤ���
+が、ML のモジュールは？ `sig val x : int val y : string end` という型を持つ
+モジュールは `sig val y : string val x : int end` という型にしても良い。
 
 
     # module M = struct let x = 42 let y = "hello" end;;
@@ -59,16 +59,16 @@ ML �Υ⥸�塼��η��դ��� tuple �������
     module N : sig val y : string val x : int end
 
 
-���졩 Tuple �Ǥϥ���å��夹��Τˤʤ� module �Ǥϥ���å��夷�ʤ���
-`sig val x : int val y : string end` �η�����ĥ⥸�塼��� `(int * string)` 
-��Ʊ����¤�򤷤Ƥ���Ϥ��� `sig val y : string val x : int end` �η��ˤ����
-`(string * int)` ��Ʊ���Ϥ����ɤ����ƾ�꤯�Ԥ���
+あれ？ Tuple ではクラッシュするのになぜ module ではクラッシュしない？
+`sig val x : int val y : string end` の型を持つモジュールは `(int * string)` 
+と同じ構造をしているはず、 `sig val y : string val x : int end` の型にすると
+`(string * int)` と同じはず。どうして上手く行く？
 
 Module coercion
 ======================================
 
-�⤷����ѥ��餬�����äˤ��Ƥ��ʤ��ä��Ȥ���С� tuple �����Ʊ���ǥ���å��夹��Ϥ�����
-����å��夷�ʤ��Ȥ������Ȥϲ������̤ʤ��Ȥ򤷤Ƥ��뤫�顣
+もしコンパイラが何も特にしていなかったとすれば、 tuple の例と同じでクラッシュするはずだ。
+クラッシュしないということは何か特別なことをしているから。
 
 
     $ ocaml -dlambda
@@ -85,16 +85,16 @@ Module coercion
     module N : sig val y : string val x : int end
 
 
-ñ�� `N` �� `M` ��Ʊ���ͤǤϤʤ��Ѵ������äƤ��롣
-`(makeblock 0 (field 1 M/1020) (field 0 M/1020))` ����ʬ��
-`M` �� 1���ܤ� 0���ܤˡ�0���ܤ� 1���ܤ��֤����֥��å����äƤ��롣
+単に `N` は `M` と同じ値ではなく変換が入っている。
+`(makeblock 0 (field 1 M/1020) (field 0 M/1020))` の部分。
+`M` の 1番目を 0番目に、0番目を 1番目に置いたブロックを作っている。
 
-���줬 OCaml �� Typedtree �˽ФƤ��� module_coercion������ sig ����ĥ⥸�塼����ͤ�
-����˸ߴ����Τ��뤫��������Ū�� sig �ؤȷ����Ѥ�����ˡ���Ԥ� sig �Υ쥤�����Ȥؤ�
-�⥸�塼��֥��å������Ǥ�����֤����뤿��ξ���Ǥ���
+これが OCaml の Typedtree に出てくる module_coercion。ある sig を持つモジュールの値を
+それに互換性のあるか、より一般的な sig へと型を変える時に、後者の sig のレイアウトへと
+モジュールブロックの要素を再配置させるための情報です。
 
-����Ū�� module coercion �Ͽ� sig ����˵� sig ���ǤΤɤΰ��֤Υ�Τ���˽ФƤ��뤫
-�ʤΤ� int list �ι�¤�ˤʤ뤬���ФƤ����оݤ� module ���ä���硢���� module ���Ф���
-module coercion ��ɬ�פˤʤ롣�ޤ� primitive ���Ф��Ƥϡ�˺�줿���������ɤ�䡣
+基本的に module coercion は新 sig の中に旧 sig 要素のどの位置のモノが順に出てくるか
+なので int list の構造になるが、出てくる対象が module だった場合、その module に対する
+module coercion も必要になる。また primitive に対しては…忘れた。ソース読めや。
 
 
