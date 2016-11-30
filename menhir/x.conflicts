@@ -1,0 +1,35 @@
+
+** Conflict (shift/reduce/reduce) in state 1.
+** Tokens involved: WORD #
+** The following explanations concentrate on token WORD.
+** This state is reached from statement after reading:
+
+START 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+statement 
+START sequence 
+      (?)
+
+** In state 1, looking ahead at WORD, reducing production
+** maybeword -> 
+** is permitted because of the following sub-derivation:
+
+sequence WORD // lookahead token appears
+maybeword // lookahead token is inherited
+. 
+
+** In state 1, looking ahead at WORD, shifting is permitted
+** because of the following sub-derivation:
+
+maybeword 
+. WORD 
+
+** In state 1, looking ahead at WORD, reducing production
+** sequence -> 
+** is permitted because of the following sub-derivation:
+
+sequence WORD // lookahead token appears
+. 
