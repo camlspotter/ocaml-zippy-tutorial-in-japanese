@@ -1,0 +1,7 @@
+export1(foo) =
+  eprintln(foo=$(foo))
+  export # argument is exported to the outside!!!
+
+export1(a)
+eprintln(foo=$(foo))
+

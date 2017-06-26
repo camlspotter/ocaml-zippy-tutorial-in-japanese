@@ -102,3 +102,34 @@ hello.c:
         eprintln($(FP))         # 1 !!!
         echo "hello" > hello.c
 ```
+
+# 引数なしの `export`
+
+引数なしの `export` が外に export する変数やルールをちゃんと理解する事が重要
+
+* 全ての動的スコープの変数の値
+* カレントディレクトリ
+* Unix環境変数
+* 現在の implicit rule や implicit dependencies
+* 現在の "phony" ターゲット宣言
+
+特に関数引数の名前が外に漏れ出るのが非常に困る。これが理由で `omake` 使えないと言われても仕方がない:
+
+```
+export1(foo) =
+  eprintln(foo=$(foo)) # foo=a
+  export # argument is exported to the outside!!!
+
+export1(a)
+eprintln(foo=$(foo)) # foo=a !!!
+```
+
+# 引数ありの `export`
+
+引数がある `export` はその引数を評価後、その引数によって
+
+* 値が空なら引数無し `export` と同じ
+* `$(export 変数..)` で作られた環境の場合、その環境
+* `.RULE`: implicit rules and implicit dependencies.
+* `.PHONY`: the set of “phony” target declarations.
+* その他の文字列は変数名として扱いその変数を export する
