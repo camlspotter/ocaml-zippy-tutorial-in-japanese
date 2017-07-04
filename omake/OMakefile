@@ -5,3 +5,61 @@ export1(foo) =
 export1(a)
 eprintln(foo=$(foo))
 
+X=1
+GETX() =
+  return $(X)
+X=2
+eprintln($(GETX))
+
+
+X=1
+SETX() =
+  X=2
+  eprintln($(X))
+  return 1
+r=$(SETX)
+eprintvln($(r))
+eprintln($(X))
+
+MAKEY()=
+  Y = 3
+  export Y
+MAKEY()
+eprintln($(Y))
+
+F(y)=
+  export X
+  X=1
+  if $(y)
+    X=2
+  else
+    X=3
+F(true)
+eprintln(X=$(X))
+
+X=1
+F(y)=
+  export X
+  X=2
+  return $(y)
+Z=$(F 1)
+eprintln(Z=$(Z) X=$(X))
+
+X=1
+F(y)=
+  export X
+  X=2
+  value $(y)
+Z=$(F 1)
+eprintln(Z=$(Z) X=$(X))
+
+%.ext1: %.ext2
+
+%a: %b
+  cp $< $@
+
+%a: %
+  cp $< $@
+
+
+

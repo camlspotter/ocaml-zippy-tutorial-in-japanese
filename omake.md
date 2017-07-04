@@ -241,4 +241,3 @@ Reference manual の "Temporary directories" に `CREATE_SUBDIRS` という秘�
 勝手に掘ってくれるとある。ひどい。
 
 
-
