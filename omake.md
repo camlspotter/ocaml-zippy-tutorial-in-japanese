@@ -108,6 +108,49 @@ hello.c:
 
 ## 関数の呼び出し
 
+関数の定義:
+
+```
+f(x) =
+  eprintln(arg=$(x))
+  value $(x)
+```
+
+呼出し方法が二つある。まず GNU-make っぽい文法 `$(f args,...)`:
+
+```
+$(f 1)   # x=1
+x=$(f 2) # x=2
+```
+
+普通の関数呼出し `f(args,..)` も書けるけど、戻り値が使えないことに注意！
+
+```
+f(3)              # x = 3
+x=f(4)            # x="f(4)" と評価される!!
+eprintln(x=$(x))  # x="f(4)"
+```
+
+関数呼び出しについてもう一つ。ルール内部で `f(args,...)` は使わないほうが良い:
+
+```
+.PHONY:poi
+poi:
+  $(eprintln Just a message)
+  eprintln(Very noisy)
+```
+
+`eprintln(..)` はいろいろ出力して目障り:
+
+```
+$ omake poi
+*** omake: finished reading OMakefiles (0.01 sec)
+Just a message
+- build . <poi>                              <------ うるさい
++ global.eprintln(("Very", ' ', "noisy"))    <------ うるさい
+Very noisy
+*** omake: done (0.01 sec, 0/0 scans, 1/1 rules, 0/19 digests)
+```
 
 # 次に大事なこと
 
@@ -136,6 +179,7 @@ Reference manual の "Exporting the environment" をよく読んで。
 
 * `export .RULE` で implicit rule と implicit dependencies を外に出せます
 * `export .PHONY` で phony target を外に出せます
+* Implicit ではないパターンを使わないルールは `export` しなくても外に出ます
 
 Rule, dependency や phony target の`export`も変数の`export`と同じで、上のスコープにある
 同名のものをshadowするはず。
@@ -231,6 +275,16 @@ OCaml で `make inconsistent assumptions over implementation Xxx` が出た時�
 ターゲットを `omake --show-dependency ターゲット` でビルドしてみて確認するとよい。
 足りていないのを確認できる。
 
+## `if` の条件節に括弧をつけない！
+
+`if ($(equal $(A), $(B))) ...` とすると then 節がけっして呼ばれない:
+
+```
+if true
+  eprintln("true")
+if (true)
+  eprintln("(true)") # "(true)" は真ではない
+```
 
 # 豆知識
 
@@ -239,5 +293,3 @@ OCaml で `make inconsistent assumptions over implementation Xxx` が出た時�
 Reference manual の "Temporary directories" に `CREATE_SUBDIRS` という秘密の変数について
 さくっと書いてある。 `.SUBDIRS: <dirs>` で `dirs` が無い場合、 `CREATE_SUBDIRS=true` だと
 勝手に掘ってくれるとある。ひどい。
-
-

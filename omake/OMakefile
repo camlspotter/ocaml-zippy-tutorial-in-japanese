@@ -63,3 +63,22 @@ eprintln(Z=$(Z) X=$(X))
 
 
 
+
+f(x) =
+  eprintln(arg=$(x))
+  value $(x)
+
+g() =
+  eprintln(\$(f 1)= $(f 1))
+  y=$(f 2)
+  eprintln(y=$(y))
+  f(3)
+  z=f(4)
+  eprintln(z=$(z))
+
+
+.PHONY:poi
+poi:
+  $(eprintln Just a message)
+  eprintln(Very noisy)
+
