@@ -181,8 +181,7 @@ Parsetree を弄るなら Ast_mapper。あれ？ 4.01.0 では class 使って�
 
 * -ppx で AST 書き換え。これが標準になるので OCaml でコンパイラでなんたらという若者はおさえておくこと
 * Ast_mapper に肝は用意されている
-* `ocaml` では動かないので `ocamlc` で予習。
+* `ocaml` では動かないので `ocamlc` で予習。 ⇐今は大丈夫
 
 以上
-
         
