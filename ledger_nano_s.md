@@ -143,5 +143,10 @@ export GNUPGHOME=~/.gnupg/ledger
 With this env var setting, you test signing and verification:
 
 ```shell
-echo 123 | gpg --sign | gpg --verify   # click the device button
+$ echo 123 | gpg --sign | gpg --verify
+gpg: using "Jun FURUSE <jun.furuse@dailambda.jp>" as default secret key for signing
+gpg: Signature made Wed Oct  3 16:48:23 2018 CEST
+gpg:                using ECDSA key xXXXX....
+gpg:                issuer "jun.furuse@dailambda.jp"
+gpg: Good signature from "Jun FURUSE <jun.furuse@dailambda.jp>" [ultimate]
 ```
