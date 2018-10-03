@@ -4,6 +4,8 @@
 
 In short: failed.
 
+#### Details
+
 `gpg --card-status` fails even if I followed the instruction of changing
 `/usr/libexec/SmartCardServices/drivers/ifd-ccid.bundle/Contents/Info.plist`:
 
@@ -23,6 +25,8 @@ Instead, I have installed SSH/PGP app.
 
 In short: SSH public key generated.
 
+#### Details
+
 SSH key generation inside the device was no problem.  I just followed the instruciton here:
  
 https://thoughts.t37.net/a-step-by-step-guide-to-securing-your-ssh-keys-with-the-ledger-nano-s-92e58c64a005
@@ -31,7 +35,12 @@ Note that there is no way to import an existing SSH private/public keys to the d
 
 ### GPG
 
-In short: GPG public key generated, but bit glitchy.
+In short: GPG public key generated, but bit glitchy:
+
+* Install `trezor-agent` and use `ledger-gpg` command.
+* You may need to fix `/usr/local/lib/python3.7/site-packages/libagent/gpg/__init__.py`
+
+#### Details
 
 First, I installed `trezor-agent`:
 
